@@ -1,7 +1,7 @@
 // PureLogoSplashView.swift
 // Authentication
 //
-// アプリ起動直後に表示されるロゴ画面（UI最終版）。
+// アプリ起動直後に表示されるロゴ画面。
 // 約1.5秒後に自動的にAccountGuidanceViewへ遷移する。
 
 import SwiftUI
@@ -14,33 +14,9 @@ struct PureLogoSplashView: View {
 
     var body: some View {
         ZStack {
-            // 宇宙グラデーション背景（タイトル画面と統一）
-            LinearGradient(
-                colors: [
-                    Color(splashHex: "03051C"),
-                    Color(splashHex: "10134C"),
-                    Color(splashHex: "292A80"),
-                    Color(splashHex: "050820")
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            Color.black.ignoresSafeArea()
 
-            // 星雲グロー
-            Circle()
-                .fill(Color.blue.opacity(0.3))
-                .frame(width: 240)
-                .blur(radius: 90)
-                .offset(x: -110, y: 150)
-
-            Circle()
-                .fill(Color.purple.opacity(0.35))
-                .frame(width: 220)
-                .blur(radius: 85)
-                .offset(x: 120, y: -150)
-
-            // 既存の星空アニメーション
+            // 宇宙星空背景
             LaunchStarfieldBG()
                 .ignoresSafeArea()
 
@@ -50,38 +26,38 @@ struct PureLogoSplashView: View {
                 // アプリ名ロゴ（グラデーション＋ネオングロー）
                 VStack(spacing: 10) {
                     ZStack {
-                        Text("MindWaveGraphic")
-                            .font(.system(size: 34, weight: .black, design: .rounded))
-                            .tracking(-1.2)
-                            .foregroundColor(.cyan)
-                            .blur(radius: logoGlow ? 22 : 8)
+                        Text("MINDWAVEGRAPHIC")
+                            .font(.system(size: 24, weight: .black, design: .rounded))
+                            .tracking(1.2)
+                            .foregroundStyle(.cyan)
+                            .blur(radius: logoGlow ? 18 : 8)
                             .opacity(0.8)
 
-                        Text("MindWaveGraphic")
-                            .font(.system(size: 34, weight: .black, design: .rounded))
-                            .tracking(-1.2)
+                        Text("MINDWAVEGRAPHIC")
+                            .font(.system(size: 24, weight: .black, design: .rounded))
+                            .tracking(1.2)
                             .minimumScaleFactor(0.65)
                             .lineLimit(1)
                             .foregroundStyle(
                                 LinearGradient(
                                     colors: [
                                         .white,
-                                        Color(splashHex: "A8F5FF"),
-                                        Color(splashHex: "B4A4FF"),
-                                        Color(splashHex: "F0D9FF")
+                                        Color(red: 0.66, green: 0.96, blue: 1.0),
+                                        Color(red: 0.71, green: 0.64, blue: 1.0),
+                                        Color(red: 0.94, green: 0.85, blue: 1.0)
                                     ],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
                             )
-                            .shadow(color: .cyan.opacity(0.8), radius: 12)
+                            .shadow(color: .cyan.opacity(0.8), radius: 10)
                     }
                     .padding(.horizontal, 16)
 
                     Text("YOUR MIND, YOUR UNIVERSE")
                         .font(.system(size: 9, weight: .medium))
                         .tracking(4)
-                        .foregroundColor(.white.opacity(0.65))
+                        .foregroundStyle(.white.opacity(0.65))
                 }
 
                 Spacer()
@@ -90,7 +66,7 @@ struct PureLogoSplashView: View {
                 HStack(spacing: 6) {
                     ForEach(0..<3, id: \.self) { i in
                         Circle()
-                            .fill(Color.cyan.opacity(pulse ? 0.9 : 0.25))
+                            .fill(AuthDesign.accent.opacity(pulse ? 0.85 : 0.25))
                             .frame(width: 5, height: 5)
                             .animation(
                                 .easeInOut(duration: 0.6)
@@ -117,20 +93,6 @@ struct PureLogoSplashView: View {
                 print("[Navigation] logoSplash -> accountGuidance")
             }
         }
-    }
-}
-
-private extension Color {
-    init(splashHex: String) {
-        let hex = splashHex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-
-        let red = Double((int >> 16) & 0xFF) / 255
-        let green = Double((int >> 8) & 0xFF) / 255
-        let blue = Double(int & 0xFF) / 255
-
-        self.init(red: red, green: green, blue: blue)
     }
 }
 

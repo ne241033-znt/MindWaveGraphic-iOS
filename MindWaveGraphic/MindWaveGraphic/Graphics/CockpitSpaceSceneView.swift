@@ -9,23 +9,85 @@ struct CockpitSpaceSceneView: View {
     /// アプリ側のリアルタイム緊張・ストレススコア (0〜100)
     let score: Double
 
+    /// 揺れを発動させる閾値（スコア70以上で振動）
+    private var shouldShake: Bool {
+        score >= 70
+    }
+
+    private var redOverlayOpacity: Double {
+        if score <= 60 {
+            return 0
+        } else {
+            return min((score - 60) / 40 * 0.25, 0.25)
+        }
+    }
+
+    private var backgroundColor: Color {
+        if score <= 30 {
+            return Color.blue.opacity(0.35)
+        } else if score <= 60 {
+            return Color.black
+        } else {
+            return Color(red: 0.25, green: 0.0, blue: 0.0)
+        }
+    }
+
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // 1. 宇宙の背景
-                Color.black
-                    .ignoresSafeArea()
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !shouldShake)) { timeline in
+            let shakeX: CGFloat = shouldShake
+                ? CGFloat(sin(timeline.date.timeIntervalSinceReferenceDate * 35) * 7)
+                : 0
+            let shakeY: CGFloat = shouldShake
+                ? CGFloat(cos(timeline.date.timeIntervalSinceReferenceDate * 28) * 3)
+                : 0
 
-                // 2. 3D星空・隕石（inseki アセットを使用）
-                CustomStarfieldView(score: score)
+            GeometryReader { geometry in
+                ZStack {
+                    // 1. 背景
+                    backgroundColor
+                        .ignoresSafeArea()
+                        .animation(.easeInOut(duration: 1.0), value: score)
 
-                // 3. スコア70以上の雷エフェクト
-                CustomLightningView(score: score)
+                    // 2. 星空・隕石（白背景を透過して合成）
+                    CustomStarfieldView(score: score)
+
+                    // 3. 雷（スコア70以上）
+                    CustomLightningView(score: score)
+
+                    // 4. コックピット枠（周囲フレームとして控えめに配置）
+                    if UIImage(named: "cockpit") != nil {
+                        Image("cockpit")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .opacity(0.28)
+                            .mask(
+                                RadialGradient(
+                                    gradient: Gradient(stops: [
+                                        .init(color: .clear, location: 0.35),
+                                        .init(color: .black, location: 0.88)
+                                    ]),
+                                    center: .center,
+                                    startRadius: 20,
+                                    endRadius: max(geometry.size.width, geometry.size.height) * 0.72
+                                )
+                            )
+                            .ignoresSafeArea()
+                            .allowsHitTesting(false)
+                    }
+
+                    // 5. スコア60超の赤オーバーレイ演出
+                    Color.red
+                        .opacity(redOverlayOpacity)
+                        .ignoresSafeArea()
+                        .allowsHitTesting(false)
+                        .animation(.easeInOut(duration: 1.0), value: score)
+                }
+                .offset(x: shakeX, y: shakeY)
             }
         }
     }
 }
-    
 
 // MARK: - 3D星空・隕石
 struct CustomStarfieldView: View {
@@ -38,9 +100,9 @@ struct CustomStarfieldView: View {
         if score < 33 {
             return 0
         } else if score < 70 {
-            return 10
+            return 14
         } else {
-            return 22
+            return 26
         }
     }
 
@@ -64,12 +126,12 @@ struct CustomStarfieldView: View {
 
         ctx.draw(src, in: CGRect(x: 0, y: 0, width: width, height: height))
 
-        // 白に近いピクセル（R, G, B すべて 235 以上）を透明化
+        // 白に近いピクセル（R, G, B すべて 225 以上）を透明化
         for i in stride(from: 0, to: rawData.count, by: 4) {
             let r = rawData[i]
             let g = rawData[i + 1]
             let b = rawData[i + 2]
-            if r > 235 && g > 235 && b > 235 {
+            if r > 225 && g > 225 && b > 225 {
                 rawData[i] = 0
                 rawData[i + 1] = 0
                 rawData[i + 2] = 0
@@ -182,11 +244,37 @@ struct CustomLightningView: View {
                 guard score >= 70 else { return }
 
                 let time = timeline.date.timeIntervalSinceReferenceDate
-                let count: Int = score < 80 ? 32 : (score < 90 ? 24 : 20)
-                let interval: Double = score < 80 ? 1.2 : (score < 90 ? 1.0 : 0.75)
-                let duration: Double = score < 80 ? 0.28 : (score < 90 ? 0.30 : 0.35)
-                let lineWidth: CGFloat = score < 80 ? 1.5 : (score < 90 ? 2.5 : 4.0)
-                let lightningColor: Color = score < 80 ? .cyan : (score < 90 ? .purple : .white)
+
+                let count: Int
+                let interval: Double
+                let duration: Double
+                let lineWidth: CGFloat
+
+                if score < 80 {
+                    count = 32
+                    interval = 1.2
+                    duration = 0.28
+                    lineWidth = 1.5
+                } else if score < 90 {
+                    count = 24
+                    interval = 1.0
+                    duration = 0.30
+                    lineWidth = 2.5
+                } else {
+                    count = 20
+                    interval = 0.75
+                    duration = 0.35
+                    lineWidth = 4.0
+                }
+
+                let lightningColor: Color
+                if score < 80 {
+                    lightningColor = .cyan
+                } else if score < 90 {
+                    lightningColor = .purple
+                } else {
+                    lightningColor = .white
+                }
 
                 for i in 0..<count {
                     let seed = Double(i)
@@ -197,30 +285,98 @@ struct CustomLightningView: View {
                     let opacity = 0.35 + flash * 0.65
 
                     let positionType = i % 3
-                    let startX: CGFloat = positionType == 0 ? size.width * 0.03 : (positionType == 1 ? size.width * 0.97 : size.width * 0.5)
+                    let startX: CGFloat
+                    if positionType == 0 {
+                        startX = size.width * 0.03
+                    } else if positionType == 1 {
+                        startX = size.width * 0.97
+                    } else {
+                        startX = size.width * 0.5
+                    }
+
                     let startY = CGFloat((seed * 83.7).truncatingRemainder(dividingBy: 100)) / 100 * size.height
-                    let length: CGFloat = score < 80 ? size.height * 0.15 : (score < 90 ? size.height * 0.30 : size.height * 0.48)
+
+                    let length: CGFloat
+                    if score < 80 {
+                        length = size.height * 0.15
+                    } else if score < 90 {
+                        length = size.height * 0.30
+                    } else {
+                        length = size.height * 0.48
+                    }
                     let endY = min(startY + length, size.height)
-                    let direction: CGFloat = positionType == 0 ? 1 : (positionType == 1 ? -1 : (i % 2 == 0 ? 1 : -1))
-                    let endX = startX + direction * (positionType == 2 ? size.width * 0.12 : size.width * 0.18)
+
+                    let direction: CGFloat
+                    if positionType == 0 {
+                        direction = 1
+                    } else if positionType == 1 {
+                        direction = -1
+                    } else {
+                        direction = i % 2 == 0 ? 1 : -1
+                    }
+
+                    let endX = startX + direction * (
+                        positionType == 2 ? size.width * 0.12 : size.width * 0.18
+                    )
+
                     let currentWidth: CGFloat = positionType == 2 ? lineWidth * 1.3 : lineWidth
+                    let isStraight = i % 4 == 0
 
                     var path = Path()
                     path.move(to: CGPoint(x: startX, y: startY))
-                    if i % 4 == 0 {
+
+                    if isStraight {
                         path.addLine(to: CGPoint(x: endX, y: endY))
                     } else {
                         let p1 = CGPoint(x: startX + direction * 15, y: startY + length * 0.25)
-                        let p2 = CGPoint(x: startX - direction * 5, y: startY + length * 0.50)
+                        let p2 = CGPoint(x: startX - direction * 5,  y: startY + length * 0.50)
                         let p3 = CGPoint(x: startX + direction * 25, y: startY + length * 0.75)
+                        let p4 = CGPoint(x: endX, y: endY)
+
                         path.addLine(to: p1)
                         path.addLine(to: p2)
                         path.addLine(to: p3)
-                        path.addLine(to: CGPoint(x: endX, y: endY))
+                        path.addLine(to: p4)
+
+                        if score >= 80 {
+                            var branch = Path()
+                            branch.move(to: p2)
+                            branch.addLine(
+                                to: CGPoint(
+                                    x: p2.x + direction * 35,
+                                    y: p2.y + length * 0.12
+                                )
+                            )
+                            context.stroke(
+                                branch,
+                                with: .color(lightningColor.opacity(opacity * 0.8)),
+                                lineWidth: currentWidth * 0.7
+                            )
+                        }
                     }
 
-                    context.stroke(path, with: .color(lightningColor.opacity(opacity * 0.25)), lineWidth: currentWidth * 5)
-                    context.stroke(path, with: .color(lightningColor.opacity(opacity)), lineWidth: currentWidth)
+                    context.stroke(
+                        path,
+                        with: .color(lightningColor.opacity(opacity * 0.25)),
+                        lineWidth: currentWidth * 5
+                    )
+                    context.stroke(
+                        path,
+                        with: .color(lightningColor.opacity(opacity)),
+                        lineWidth: currentWidth
+                    )
+                }
+
+                // 90以上の画面フラッシュ
+                if score >= 90 {
+                    let flashPhase = time.truncatingRemainder(dividingBy: 0.9)
+                    if flashPhase < 0.12 {
+                        let flashOpacity = (1 - flashPhase / 0.12) * 0.16
+                        context.fill(
+                            Path(CGRect(origin: .zero, size: size)),
+                            with: .color(.white.opacity(flashOpacity))
+                        )
+                    }
                 }
             }
         }

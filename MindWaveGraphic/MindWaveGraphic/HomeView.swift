@@ -417,26 +417,21 @@ struct HomeView: View {
             Spacer()
 
             // センタータイトル
-            VStack(spacing: 1) {
-                HStack(spacing: 0) {
-                    Text("MIND")
-                        .font(.system(size: 17, weight: .ultraLight, design: .monospaced))
-                        .foregroundStyle(Color.white.opacity(0.96))
-                        .tracking(5.0)
-                    Text(" WAVE")
-                        .font(.system(size: 17, weight: .ultraLight, design: .monospaced))
-                        .foregroundStyle(accentColor.opacity(0.98))
-                        .tracking(5.0)
-                        .shadow(color: accentColor.opacity(0.45), radius: 10)
-                        .animation(.easeInOut(duration: 1.0), value: scoreIntensity)
-                }
-                // 全体UI 8 ページ: ロゴは「Graphic」まで入れる
+            HStack(spacing: 0) {
+                Text("MINDWAVE")
+                    .font(.system(size: 13.5, weight: .ultraLight, design: .monospaced))
+                    .foregroundStyle(Color.white.opacity(0.96))
+                    .tracking(2.2)
                 Text("GRAPHIC")
-                    .font(.system(size: 8, weight: .light, design: .monospaced))
-                    .foregroundStyle(Color.white.opacity(0.55))
-                    .tracking(4.0)
+                    .font(.system(size: 13.5, weight: .ultraLight, design: .monospaced))
+                    .foregroundStyle(accentColor.opacity(0.98))
+                    .tracking(2.2)
+                    .shadow(color: accentColor.opacity(0.45), radius: 10)
+                    .animation(.easeInOut(duration: 1.0), value: scoreIntensity)
             }
-            .padding(.vertical, 4)
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
+            .padding(.vertical, 6)
             .padding(.horizontal, 10)
             .background(
                 RoundedRectangle(cornerRadius: 7)
@@ -444,6 +439,7 @@ struct HomeView: View {
                     .overlay(RoundedRectangle(cornerRadius: 7)
                         .strokeBorder(Color.white.opacity(0.07), lineWidth: 0.5))
             )
+
 
             Spacer()
 
@@ -1018,8 +1014,10 @@ struct HomeView: View {
         case .unavailable: return "計測を開始するとデータが届きます。"
         }
     }
-
 }
+
+
+
 
 // MARK: - CockpitFrameCanvas (imageUI.png: ほぼ黒のストラット)
 

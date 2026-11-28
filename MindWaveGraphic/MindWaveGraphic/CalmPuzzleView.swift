@@ -212,6 +212,7 @@ private struct PuzzleGuideOverlay: View {
 private struct PuzzleGuideStep: View {
     let icon: String
     let text: String
+
     var body: some View {
         HStack(spacing: 20) {
             Image(systemName: icon)
@@ -235,6 +236,8 @@ private struct PuzzleGuideStep: View {
 private struct PuzzleCompleteOverlay: View {
     let moves: Int
     let onNext: () -> Void
+    var onComplete: (() -> Void)? = nil
+
     var body: some View {
         ZStack {
             Color(red: 0.031, green: 0.067, blue: 0.122).opacity(0.90).ignoresSafeArea()
@@ -243,21 +246,44 @@ private struct PuzzleCompleteOverlay: View {
                     .font(.system(size: 28, weight: .ultraLight))
                     .foregroundColor(.white.opacity(0.88))
                     .tracking(8)
-                Text("— \(moves) 手 —")
+                Text("\(moves)手")
                     .font(.system(size: 12, weight: .light))
                     .foregroundColor(.white.opacity(0.32))
                     .tracking(4)
-                Button(action: onNext) {
-                    Text("次のレベル")
-                        .font(.system(size: 13, weight: .regular))
-                        .tracking(2)
-                        .foregroundColor(.white.opacity(0.65))
-                        .padding(.horizontal, 28)
-                        .padding(.vertical, 10)
-                        .background(
-                            Capsule().fill(Color.white.opacity(0.08))
-                                .overlay(Capsule().stroke(Color.white.opacity(0.18), lineWidth: 0.5))
-                        )
+
+                VStack(spacing: 12) {
+                    if let onComplete {
+                        Button(action: onComplete) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text("結果へ進む")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .tracking(1)
+                            }
+                            .foregroundColor(.black)
+                            .padding(.horizontal, 32)
+                            .padding(.vertical, 12)
+                            .background(
+                                Capsule()
+                                    .fill(Color.cyan)
+                                    .shadow(color: Color.cyan.opacity(0.45), radius: 10)
+                            )
+                        }
+                    }
+
+                    Button(action: onNext) {
+                        Text("次のレベル")
+                            .font(.system(size: 13, weight: .regular))
+                            .tracking(2)
+                            .foregroundColor(.white.opacity(0.65))
+                            .padding(.horizontal, 28)
+                            .padding(.vertical, 10)
+                            .background(
+                                Capsule().fill(Color.white.opacity(0.08))
+                                    .overlay(Capsule().stroke(Color.white.opacity(0.18), lineWidth: 0.5))
+                            )
+                    }
                 }
                 .padding(.top, 8)
             }
@@ -269,6 +295,8 @@ private struct PuzzleCompleteOverlay: View {
 // MARK: - Main View
 
 struct CalmPuzzleView: View {
+    var onComplete: (() -> Void)? = nil
+
     @StateObject private var game = PuzzleGame()
     @State private var showGuide = false
 
@@ -359,12 +387,15 @@ struct CalmPuzzleView: View {
                     .padding(.top, 24)
 
                     Spacer()
+                        .frame(minHeight: 80)
                 }
 
                 if game.isComplete {
-                    PuzzleCompleteOverlay(moves: game.moves) {
-                        withAnimation { game.nextLevel() }
-                    }
+                    PuzzleCompleteOverlay(
+                        moves: game.moves,
+                        onNext: { withAnimation { game.nextLevel() } },
+                        onComplete: onComplete
+                    )
                 }
 
                 if showGuide {

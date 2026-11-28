@@ -1,16 +1,3 @@
-//
-//  HandAcupressureGuideView.swift
-//  MindWaveGraphic
-//
-//  手のひら・手首にある代表的なリラックスツボを
-//  タップで確認したり、順番にガイドしてもらいながら
-//  押せるSwiftUIビュー（ディープネイビー＆シアンテーマ）。
-//
-//  ※ ここで示すツボの位置・効果は一般的なセルフケアの目安であり、
-//     医療的な診断・治療を目的としたものではありません。
-//     体調に不安がある場合は医療機関にご相談ください。
-//
-
 import SwiftUI
 import UIKit
 
@@ -18,12 +5,12 @@ import UIKit
 
 struct PressurePoint: Identifiable {
     let id = UUID()
-    let name: String          // 日本語名
-    let reading: String       // 読み仮名
-    let code: String          // 経穴コード(参考)
-    let position: CGPoint     // 手の図の中での位置(0〜1の割合)
-    let effect: String        // 効果の説明
-    let howTo: String         // 押し方
+    let name: String
+    let reading: String
+    let code: String
+    let position: CGPoint
+    let effect: String
+    let howTo: String
 }
 
 let handPressurePoints: [PressurePoint] = [
@@ -33,7 +20,7 @@ let handPressurePoints: [PressurePoint] = [
         code: "PC8",
         position: CGPoint(x: 0.583, y: 0.553),
         effect: "手のひらの中央。軽く握ったとき中指の先が触れるあたり。気持ちを落ち着かせ、緊張や興奮を鎮めるといわれます。",
-        howTo: "反対の親指で、心地よい強さで5秒押して離す ×5回"
+        howTo: "反対の親指で、心地よい強さで5秒押して離す×5回"
     ),
     PressurePoint(
         name: "合谷",
@@ -49,7 +36,7 @@ let handPressurePoints: [PressurePoint] = [
         code: "HT7",
         position: CGPoint(x: 0.646, y: 0.745),
         effect: "手首の横じわ、小指側のくぼみ。自律神経のバランスを整え、不安や寝つきの悪さのケアに使われます。",
-        howTo: "反対の親指で軽く3〜5秒押す ×5回"
+        howTo: "反対の親指で軽く3〜5秒押す×5回"
     ),
     PressurePoint(
         name: "内関",
@@ -57,22 +44,22 @@ let handPressurePoints: [PressurePoint] = [
         code: "PC6",
         position: CGPoint(x: 0.517, y: 0.877),
         effect: "手首の横じわから指幅3本分ひじ側、2本の腱の間。胸のつかえや緊張、乗り物酔いのケアによく使われます。",
-        howTo: "反対の親指で5秒押して離す ×5回"
+        howTo: "反対の親指で5秒押して離す×5回"
     )
 ]
 
-// MARK: - カラーパレット（アプリの宇宙・コックピットテーマに統一）
+// MARK: - カラーパレット
 
 private enum AcupressureTheme {
-    static let bgTop       = Color(red: 0.035, green: 0.065, blue: 0.16)
-    static let bgBottom    = Color(red: 0.012, green: 0.020, blue: 0.065)
-    static let cardFill    = Color(red: 0.030, green: 0.055, blue: 0.14)
-    static let accentCyan  = Color(hue: 0.55, saturation: 0.88, brightness: 0.96)
-    static let deepBlue    = Color(hue: 0.62, saturation: 0.90, brightness: 0.92)
-    static let iceBlue     = Color(red: 0.72, green: 0.92, blue: 1.0)
+    static let bgTop      = Color(red: 0.035, green: 0.065, blue: 0.16)
+    static let bgBottom   = Color(red: 0.012, green: 0.020, blue: 0.065)
+    static let cardFill   = Color(red: 0.030, green: 0.055, blue: 0.14)
+    static let accentCyan = Color(hue: 0.55, saturation: 0.88, brightness: 0.96)
+    static let deepBlue   = Color(hue: 0.62, saturation: 0.90, brightness: 0.92)
+    static let iceBlue    = Color(red: 0.72, green: 0.92, blue: 1.0)
 }
 
-// MARK: - 背景(深宇宙にゆっくり漂う青い光のぼかし)
+// MARK: - 背景
 
 private struct AcupressureAmbientBackground: View {
     @State private var drift = false
@@ -117,7 +104,7 @@ private struct AcupressureAmbientBackground: View {
     }
 }
 
-// MARK: - 手のイラスト(画像 "hand" があれば使用、なければ青いHUD手のひらイラストを描画)
+// MARK: - 手のイラスト
 
 let handImageAspect: CGFloat = 720.0 / 1040.0
 
@@ -130,7 +117,6 @@ private struct HandIllustration: View {
             let h = geo.size.height
 
             ZStack {
-                // 手の後ろのやわらかい青い光(ハロー)
                 Circle()
                     .fill(
                         RadialGradient(
@@ -148,7 +134,6 @@ private struct HandIllustration: View {
                     .position(x: w * 0.5, y: h * 0.48)
 
                 if UIImage(named: "hand") != nil {
-                    // 手の輪郭ににじむシアンのグロー
                     Image("hand")
                         .resizable()
                         .scaledToFit()
@@ -157,13 +142,11 @@ private struct HandIllustration: View {
                         .opacity(0.55)
                         .frame(width: w, height: h)
 
-                    // 実写の手
                     Image("hand")
                         .resizable()
                         .scaledToFit()
                         .frame(width: w, height: h)
                 } else {
-                    // 画像未登録時でも座標(労宮/合谷/神門/内関)にピタッと合う青いホログラムの手
                     BlueHologramHandShape()
                         .fill(
                             LinearGradient(
@@ -192,7 +175,6 @@ private struct HandIllustration: View {
                         .shadow(color: AcupressureTheme.accentCyan.opacity(0.75), radius: 8)
                         .frame(width: w, height: h)
 
-                    // 手のひら・手首のしわ（ホログラム細部ライン）
                     HandPalmLinesShape()
                         .stroke(AcupressureTheme.accentCyan.opacity(0.32), lineWidth: 1.2)
                         .frame(width: w, height: h)
@@ -208,7 +190,6 @@ private struct HandIllustration: View {
     }
 }
 
-/// 労宮(0.583, 0.553)・合谷(0.395, 0.480)・神門(0.646, 0.745)・内関(0.517, 0.877)の座標に合わせた左手ひらシルエット
 private struct BlueHologramHandShape: Shape {
     func path(in rect: CGRect) -> Path {
         let w = rect.width
@@ -218,34 +199,24 @@ private struct BlueHologramHandShape: Shape {
         }
 
         var path = Path()
-        // 手首左下からスタート
         path.move(to: p(0.42, 0.96))
-        // 前腕左〜親指付け根
         path.addCurve(to: p(0.38, 0.68), control1: p(0.42, 0.85), control2: p(0.41, 0.74))
-        // 親指外側〜先端
         path.addCurve(to: p(0.18, 0.45), control1: p(0.30, 0.61), control2: p(0.21, 0.52))
         path.addCurve(to: p(0.24, 0.40), control1: p(0.16, 0.41), control2: p(0.20, 0.38))
-        // 親指内側〜合谷のくぼみ(0.395, 0.480)
         path.addCurve(to: p(0.39, 0.47), control1: p(0.30, 0.43), control2: p(0.35, 0.48))
-        // 人差し指
         path.addCurve(to: p(0.41, 0.14), control1: p(0.39, 0.34), control2: p(0.39, 0.21))
         path.addCurve(to: p(0.48, 0.14), control1: p(0.42, 0.10), control2: p(0.47, 0.10))
         path.addLine(to: p(0.49, 0.36))
-        // 中指
         path.addCurve(to: p(0.54, 0.08), control1: p(0.50, 0.24), control2: p(0.51, 0.13))
         path.addCurve(to: p(0.61, 0.09), control1: p(0.55, 0.04), control2: p(0.60, 0.05))
         path.addLine(to: p(0.60, 0.36))
-        // 薬指
         path.addCurve(to: p(0.67, 0.13), control1: p(0.62, 0.25), control2: p(0.64, 0.17))
         path.addCurve(to: p(0.73, 0.15), control1: p(0.69, 0.10), control2: p(0.73, 0.11))
         path.addLine(to: p(0.69, 0.40))
-        // 小指
         path.addCurve(to: p(0.78, 0.24), control1: p(0.72, 0.32), control2: p(0.75, 0.27))
         path.addCurve(to: p(0.83, 0.27), control1: p(0.80, 0.21), control2: p(0.84, 0.23))
-        // 小指外側〜手のひら右縁〜神門(0.646, 0.745)付近
         path.addCurve(to: p(0.73, 0.66), control1: p(0.81, 0.41), control2: p(0.78, 0.55))
         path.addCurve(to: p(0.65, 0.76), control1: p(0.70, 0.71), control2: p(0.67, 0.74))
-        // 手首右側〜右下(内関 0.517, 0.877 を含む手首幅)
         path.addCurve(to: p(0.63, 0.96), control1: p(0.64, 0.83), control2: p(0.63, 0.90))
         path.closeSubpath()
         return path
@@ -261,10 +232,8 @@ private struct HandPalmLinesShape: Shape {
         }
 
         var path = Path()
-        // 手首の横じわ（神門ライン）
         path.move(to: p(0.43, 0.745))
         path.addQuadCurve(to: p(0.65, 0.745), control: p(0.54, 0.76))
-        // 感情線・頭脳線風のホログラムガイド線
         path.move(to: p(0.46, 0.47))
         path.addQuadCurve(to: p(0.72, 0.45), control: p(0.60, 0.49))
         path.move(to: p(0.43, 0.51))
@@ -273,7 +242,7 @@ private struct HandPalmLinesShape: Shape {
     }
 }
 
-// MARK: - ツボのマーカー(シアン波紋・HUD名前ラベル付き)
+// MARK: - ツボのマーカー
 
 private struct PressurePointMarker: View {
     let point: PressurePoint
@@ -401,19 +370,19 @@ private struct PressurePointDetailCard: View {
         .background(
             RoundedRectangle(cornerRadius: 18)
                 .fill(AcupressureTheme.cardFill.opacity(0.88))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 18)
-                .stroke(
-                    LinearGradient(
-                        colors: [
-                            AcupressureTheme.accentCyan.opacity(0.50),
-                            Color.white.opacity(0.08)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    AcupressureTheme.accentCyan.opacity(0.50),
+                                    Color.white.opacity(0.08)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
         )
         .shadow(color: AcupressureTheme.accentCyan.opacity(0.12), radius: 10)
@@ -423,6 +392,7 @@ private struct PressurePointDetailCard: View {
 // MARK: - メインビュー
 
 struct HandAcupressureGuideView: View {
+    var onComplete: (() -> Void)? = nil
 
     enum Mode: String, CaseIterable {
         case free = "自由に見る"
@@ -443,8 +413,6 @@ struct HandAcupressureGuideView: View {
 
             ScrollView {
                 VStack(spacing: 18) {
-
-                    // 上部の戻るボタンと被らないよう余白を確保
                     Text("緊張緩和ストレッチ")
                         .font(.system(.title, design: .rounded).bold())
                         .foregroundStyle(
@@ -478,7 +446,6 @@ struct HandAcupressureGuideView: View {
                         }
                     }
 
-                    // 手のイラスト + マーカー
                     GeometryReader { geo in
                         ZStack {
                             HandIllustration()
@@ -500,7 +467,6 @@ struct HandAcupressureGuideView: View {
                     .frame(width: 290, height: 290 / handImageAspect)
                     .padding(.vertical, 6)
 
-                    // ガイドモード中の進捗と案内
                     if mode == .guide, let current = currentGuidePoint {
                         VStack(spacing: 10) {
                             Text("\(guideIndex + 1) / \(handPressurePoints.count)  \(current.name)を押しましょう")
@@ -517,7 +483,6 @@ struct HandAcupressureGuideView: View {
                         }
                     }
 
-                    // 詳細カード
                     if let point = displayedPoint {
                         PressurePointDetailCard(point: point)
                             .padding(.horizontal)
@@ -536,7 +501,8 @@ struct HandAcupressureGuideView: View {
                         .foregroundStyle(.white.opacity(0.35))
                         .padding(.top, 4)
                 }
-                .padding(.vertical)
+                .padding(.top)
+                .padding(.bottom, 96)
             }
         }
         .preferredColorScheme(.dark)

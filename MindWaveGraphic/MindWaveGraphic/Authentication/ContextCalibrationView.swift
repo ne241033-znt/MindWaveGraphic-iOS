@@ -311,7 +311,7 @@ struct ContextCalibrationView: View {
 
             Spacer()
 
-            Text("MindWave")
+            Text("MindWaveGraphic")
                 .font(.title3.bold())
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
